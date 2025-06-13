@@ -50,10 +50,32 @@ if uploaded_file:
         st.subheader("🏆 Top 10 Vendors by Spend (Sorted)")
         fig2, ax2 = plt.subplots()
         sorted_vendors = top_vendors.sort_values(ascending=True)
-        ax2.barh(sorted_vendors.index, sorted_vendors.values)
+        ax2.barh(sorted_vendors.index, sorted_vendors.values, color='skyblue')
         ax2.set_xlabel("Total Spend ($)")
         ax2.set_title("Top 10 Vendors by Total Monthly Spend")
         st.pyplot(fig2)
+
+        # --- Vendor-Specific Analysis ---
+        st.subheader("🔍 Vendor-Specific Analysis")
+        vendor_list = df['Vendor'].dropna().unique()
+        selected_vendor = st.selectbox("Select a vendor to analyze", sorted(vendor_list))
+
+        if selected_vendor:
+            vendor_df = df[df['Vendor'] == selected_vendor].copy()
+            vendor_df['Month'] = vendor_df['Start Date'].dt.to_period('M').astype(str)
+            vendor_monthly = vendor_df.groupby('Month')['Monthly Cost'].sum().reset_index()
+
+            st.markdown(f"#### 📉 Monthly Spend for **{selected_vendor}**")
+            fig_vendor, ax_vendor = plt.subplots()
+            ax_vendor.plot(vendor_monthly['Month'], vendor_monthly['Monthly Cost'], marker='o', color='orange')
+            ax_vendor.set_title(f"{selected_vendor} Spend Over Time")
+            ax_vendor.set_xlabel("Month")
+            ax_vendor.set_ylabel("Monthly Spend ($)")
+            ax_vendor.tick_params(axis='x', rotation=45)
+            st.pyplot(fig_vendor)
+
+            with st.expander("📄 View Raw Data for Selected Vendor"):
+                st.dataframe(vendor_df[['Category', 'Monthly Cost', 'Start Date', 'End Date', 'User Count']])
 
         # --- Underutilized Tools (Cost per User > $100) ---
         df['Cost Per User'] = (df['Monthly Cost'] / df['User Count']).round(2)
