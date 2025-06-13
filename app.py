@@ -47,8 +47,13 @@ if uploaded_file:
         # --- Top Vendors by Spend ---
         top_vendors = df.groupby('Vendor')['Monthly Cost'].sum().sort_values(ascending=False).head(10)
 
-        st.subheader("🏆 Top 10 Vendors by Spend")
-        st.bar_chart(top_vendors)
+        st.subheader("🏆 Top 10 Vendors by Spend (Sorted)")
+        fig2, ax2 = plt.subplots()
+        sorted_vendors = top_vendors.sort_values(ascending=True)
+        ax2.barh(sorted_vendors.index, sorted_vendors.values)
+        ax2.set_xlabel("Total Spend ($)")
+        ax2.set_title("Top 10 Vendors by Total Monthly Spend")
+        st.pyplot(fig2)
 
         # --- Underutilized Tools (Cost per User > $100) ---
         df['Cost Per User'] = (df['Monthly Cost'] / df['User Count']).round(2)
@@ -65,4 +70,3 @@ if uploaded_file:
         st.error(f"Error loading file: {e}")
 else:
     st.info("👆 Upload a SaaS spend CSV to begin.")
-
